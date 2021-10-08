@@ -9,8 +9,9 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
 public class Main {
-
-    public static void main(String[] args) throws IOException {
-        new Server();
+    static Server server;
+    public static void main(String[] args) throws IOException, InterruptedException {
+        server = new Server();
+        server.start();
     }
 }
