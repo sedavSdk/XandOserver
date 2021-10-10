@@ -11,8 +11,10 @@ import java.util.Vector;
 public class Server {
 
     Vector<Player> players;
+    Vector<Lobby> lobbies;
     ServerSocket serverSocket;
     String list;
+    String[] list_mass;
     Thread wait_for_player = new Thread(){
         @Override
         public void run() {
@@ -31,11 +33,28 @@ public class Server {
     }
 
     class Player{
-        String waiting_answer, name = "unnamed";
+        String name = "unnamed";
         Socket socket;
         BufferedReader in;
         PrintWriter out;
         long last_time_answer;
+        Lobby wait_in_lobby;
+    }
+
+    class Lobby{
+        Player player1, player2;
+
+        void add1(Player player){
+            player1 = player;
+        }
+        void add2(Player player){
+            player2 = player;
+            players.remove(player);
+            player1.out.println("start\nX");
+            player1.out.flush();
+            player2.out.println("start\nO");
+            player2.out.flush();
+        }
     }
 
     void add(Socket socket) throws IOException {
@@ -43,54 +62,123 @@ public class Server {
         player.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         player.out = new PrintWriter(socket.getOutputStream());
         player.name = player.in.readLine();
+        player.name = player.name.replaceAll(" ", "");
         player.socket = socket;
-        player.waiting_answer = "list";
         player.last_time_answer = System.currentTimeMillis();
         players.add(player);
     }
 
     void start() throws IOException, InterruptedException {
+        lobbies = new Vector<>();
+        for(int i = 0; i < 5; ++i){
+            lobbies.add(new Lobby());
+        }
+
         serverSocket = new ServerSocket(1321);
         wait_for_player.start();
         while (true){
             StringBuilder s = new StringBuilder();
             for(int i = 0; i < players.size(); ++i){
                 if(testConnect(players.get(i))) {
-                    s.append(players.get(i).name).append('\n');
-                    answer(players.get(i));
+                    if(i < players.size() && players.get(i)!=null) s.append(players.get(i).name).append(' ');
                 }else players.remove(i);
             }
-            Thread.sleep(1000);
+            for(int i = 0; i < lobbies.size(); ++i){
+                lobbyTestConnect(lobbies.get(i));
+            }
+            Thread.sleep(100);
             System.out.print("\033[H\033[2J");
             list = s.toString();
+            list_mass = list.split(" ");
             System.out.println("________________________________________________");
-            System.out.println(list);
+            for(int i = 0; i < list_mass.length; ++i) System.out.println(list_mass[i]);
+            if(lobbies.get(0).player1 != null) System.out.print('<' + lobbies.get(0).player1.name);
+            if(lobbies.get(0).player2 != null) System.out.print("  " + lobbies.get(0).player2.name + '>');
+            System.out.println();
         }
     }
 
     boolean testConnect(Player player) throws IOException {
-        if(player.in.ready()){
+        if(player != null && player.in.ready()){
             String s = player.in.readLine();
-            switch (s){
-                case "list":
-                    player.waiting_answer = "list";
-                case "test":
-                default:
-                    player.last_time_answer = System.currentTimeMillis();
+            if(s.equals("list")) {
+                player.out.println(list);
+                player.out.flush();
+            }else if(s.equals("test")){
+
+            }else if(s.startsWith("inv")){
+                    lobbies.get(0).add1(player);
+                    s = s.substring(3);
+                    for (int i = 0; i < players.size(); ++i) {
+                        if (s.equals(players.get(i).name)) {
+                            invite(players.get(i), lobbies.get(0));
+                            break;
+                        }
+                    }
+                players.remove(player);
+            }else if(s.equals("yes")){
+                    player.wait_in_lobby.add2(player);
+                    players.remove(player);
+            } else if(s.equals("no")){
+                    players.add(player.wait_in_lobby.player1);
+                    player.wait_in_lobby.player1 = null;
+                    player.wait_in_lobby = null;
             }
+                    player.last_time_answer = System.currentTimeMillis();
             return true;
         }
-        if(player.last_time_answer - System.currentTimeMillis() < -5000) return false;
+        if(player != null && player.last_time_answer - System.currentTimeMillis() < -3000) return false;
         return true;
     }
 
-    void answer(Player player){
-        switch (player.waiting_answer){
-            case "list":
-                player.out.println(list);
-                player.out.flush();
-                break;
+    void lobbyTestConnect(Lobby lobby) throws IOException {
+        if(lobby.player1 != null && lobby.player1.in.ready()) {
+            String s = lobby.player1.in.readLine();
+            System.out.println("!" + s);
+            if (s.equals("list")) {
+                lobby.player1.out.println(-2);
+                lobby.player1.out.flush();
+            } else if(s.equals("yes"));
+            else{
+                int y = Integer.parseInt(s);
+                if(y > 0){
+                    lobby.player2.out.println(y);
+                    lobby.player2.out.flush();
+                }
+            }
+            lobby.player1.last_time_answer = System.currentTimeMillis();
         }
+        if(lobby.player2 != null && lobby.player2.in.ready()) {
+            String s = lobby.player2.in.readLine();
+            System.out.println("!!" + s);
+            if (s.equals("list")) {
+                lobby.player2.out.println(-2);
+                lobby.player2.out.flush();
+            } else {
+                int y = Integer.parseInt(s);
+                if(y > 0){
+                    lobby.player1.out.println(y);
+                    lobby.player1.out.flush();
+                }
+            }
+            lobby.player2.last_time_answer = System.currentTimeMillis();
+        }
+        if(lobby.player1 != null && lobby.player1.last_time_answer - System.currentTimeMillis() < -3000) {
+            lobby.player1 = null;
+            players.add(lobby.player2);
+            lobby.player2 = null;
+        }
+        if(lobby.player2 != null && lobby.player2.last_time_answer - System.currentTimeMillis() < -3000) {
+            lobby.player2 = null;
+            players.add(lobby.player1);
+            lobby.player1 = null;
+        }
+    }
+
+    void invite(Player player, Lobby lobby){
+        player.out.println("invite");
+        player.out.flush();
+        player.wait_in_lobby = lobby;
     }
 
 }
