@@ -92,8 +92,10 @@ public class Server {
             list_mass = list.split(" ");
             System.out.println("________________________________________________");
             for(int i = 0; i < list_mass.length; ++i) System.out.println(list_mass[i]);
-            if(lobbies.get(0).player1 != null) System.out.print('<' + lobbies.get(0).player1.name);
-            if(lobbies.get(0).player2 != null) System.out.print("  " + lobbies.get(0).player2.name + '>');
+            for(int i = 0; i < 5; ++i) {
+                if (lobbies.get(i).player1 != null) System.out.print('<' + lobbies.get(i).player1.name);
+                if (lobbies.get(i).player2 != null) System.out.print("  " + lobbies.get(i).player2.name + '>');
+            }
             System.out.println();
         }
     }
@@ -107,14 +109,19 @@ public class Server {
             }else if(s.equals("test")){
 
             }else if(s.startsWith("inv")){
-                    lobbies.get(0).add1(player);
-                    s = s.substring(3);
-                    for (int i = 0; i < players.size(); ++i) {
-                        if (s.equals(players.get(i).name)) {
-                            invite(players.get(i), lobbies.get(0));
-                            break;
+                s = s.substring(3);
+                for(int j = 0; j < 5; ++j) {
+                    if(lobbies.get(j).player1 == null) {
+                        lobbies.get(j).add1(player);
+                        for (int i = 0; i < players.size(); ++i) {
+                            if (s.equals(players.get(i).name)) {
+                                invite(players.get(i), lobbies.get(j));
+                                break;
+                            }
                         }
+                        break;
                     }
+                }
                 players.remove(player);
             }else if(s.equals("yes")){
                     player.wait_in_lobby.add2(player);
@@ -134,7 +141,6 @@ public class Server {
     void lobbyTestConnect(Lobby lobby) throws IOException {
         if(lobby.player1 != null && lobby.player1.in.ready()) {
             String s = lobby.player1.in.readLine();
-            System.out.println("!" + s);
             if (s.equals("list")) {
                 lobby.player1.out.println(-2);
                 lobby.player1.out.flush();
@@ -150,7 +156,6 @@ public class Server {
         }
         if(lobby.player2 != null && lobby.player2.in.ready()) {
             String s = lobby.player2.in.readLine();
-            System.out.println("!!" + s);
             if (s.equals("list")) {
                 lobby.player2.out.println(-2);
                 lobby.player2.out.flush();
