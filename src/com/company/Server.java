@@ -73,6 +73,7 @@ public class Server {
         for(int i = 0; i < 5; ++i){
             lobbies.add(new Lobby());
         }
+        new ServerCommand(this).start();
 
         serverSocket = new ServerSocket(1321);
         wait_for_player.start();
@@ -86,17 +87,7 @@ public class Server {
             for(int i = 0; i < lobbies.size(); ++i){
                 lobbyTestConnect(lobbies.get(i));
             }
-            Thread.sleep(100);
-            System.out.print("\033[H\033[2J");
             list = s.toString();
-            list_mass = list.split(" ");
-            System.out.println("________________________________________________");
-            for(int i = 0; i < list_mass.length; ++i) System.out.println(list_mass[i]);
-            for(int i = 0; i < 5; ++i) {
-                if (lobbies.get(i).player1 != null) System.out.print('<' + lobbies.get(i).player1.name);
-                if (lobbies.get(i).player2 != null) System.out.print("  " + lobbies.get(i).player2.name + '>');
-            }
-            System.out.println();
         }
     }
 
@@ -141,30 +132,24 @@ public class Server {
     void lobbyTestConnect(Lobby lobby) throws IOException {
         if(lobby.player1 != null && lobby.player1.in.ready()) {
             String s = lobby.player1.in.readLine();
-            if (s.equals("list")) {
-                lobby.player1.out.println(-2);
-                lobby.player1.out.flush();
-            } else if(s.equals("yes"));
-            else{
-                int y = Integer.parseInt(s);
-                if(y > 0){
-                    lobby.player2.out.println(y);
-                    lobby.player2.out.flush();
+            if(s.charAt(0) < '9' && s.charAt(0) > '0' || s.charAt(0) == '-') {
+                    int y = Integer.parseInt(s);
+                    if (y > -1) {
+                        lobby.player2.out.println(y);
+                        lobby.player2.out.flush();
+
                 }
             }
             lobby.player1.last_time_answer = System.currentTimeMillis();
         }
         if(lobby.player2 != null && lobby.player2.in.ready()) {
             String s = lobby.player2.in.readLine();
-            if (s.equals("list")) {
-                lobby.player2.out.println(-2);
-                lobby.player2.out.flush();
-            } else {
-                int y = Integer.parseInt(s);
-                if(y > 0){
-                    lobby.player1.out.println(y);
-                    lobby.player1.out.flush();
-                }
+            if(s.charAt(0) < '9' && s.charAt(0) > '0' || s.charAt(0) == '-') {
+                    int y = Integer.parseInt(s);
+                    if (y > -1) {
+                        lobby.player1.out.println(y);
+                        lobby.player1.out.flush();
+                    }
             }
             lobby.player2.last_time_answer = System.currentTimeMillis();
         }
