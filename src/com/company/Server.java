@@ -106,7 +106,7 @@ public class Server {
                         lobbies.get(j).add1(player);
                         for (int i = 0; i < players.size(); ++i) {
                             if (s.equals(players.get(i).name)) {
-                                invite(players.get(i), lobbies.get(j));
+                                invite(players.get(i), lobbies.get(j), player.name);
                                 break;
                             }
                         }
@@ -165,8 +165,8 @@ public class Server {
         }
     }
 
-    void invite(Player player, Lobby lobby){
-        player.out.println("invite");
+    void invite(Player player, Lobby lobby, String name){
+        player.out.println("invite" + name);
         player.out.flush();
         player.wait_in_lobby = lobby;
     }
