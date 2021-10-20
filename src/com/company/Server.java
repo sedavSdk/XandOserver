@@ -87,7 +87,6 @@ public class Server {
                 lobbyTestConnect(lobbies.get(i));
             }
             list = s.toString();
-            if(list.equals("")) list = "{!?";
         }
     }
 
@@ -104,9 +103,8 @@ public class Server {
                 for(int j = 0; j < 5; ++j) {
                     if(lobbies.get(j).player1 == null) {
                         lobbies.get(j).add1(player);
-                        System.out.println(lobbies.get(j).player1.name);
                         for (int i = 0; i < players.size(); ++i) {
-                            if (players.get(i) != null && s.equals(players.get(i).name)) {
+                            if (s.equals(players.get(i).name)) {
                                 invite(players.get(i), lobbies.get(j), player.name);
                                 break;
                             }
@@ -140,8 +138,6 @@ public class Server {
                         lobby.player2.out.flush();
 
                 }
-            }else if(s.equals("list")){
-                lobby.player1.out.println(list);
             }
             lobby.player1.last_time_answer = System.currentTimeMillis();
         }
@@ -153,7 +149,7 @@ public class Server {
                         lobby.player1.out.println(y);
                         lobby.player1.out.flush();
                     }
-            }else if(s.equals("list")) lobby.player2.out.println(list);
+            }
             lobby.player2.last_time_answer = System.currentTimeMillis();
         }
         if(lobby.player1 != null && lobby.player1.last_time_answer - System.currentTimeMillis() < -3000) {
