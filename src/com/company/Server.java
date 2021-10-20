@@ -14,7 +14,7 @@ public class Server {
     Vector<Lobby> lobbies;
     ServerSocket serverSocket;
     String list;
-    String[] list_mass;
+    String[] list_masss;
     Thread wait_for_player = new Thread(){
         @Override
         public void run() {
