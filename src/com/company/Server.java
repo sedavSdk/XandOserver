@@ -118,9 +118,11 @@ public class Server {
                     player.wait_in_lobby.add2(player);
                     players.remove(player);
             } else if(s.equals("no")){
+                if(player.wait_in_lobby.player1 != null) {
                     players.add(player.wait_in_lobby.player1);
-                    players.lastElement().out.println("{!?");
-                    players.lastElement().out.flush();
+                    player.wait_in_lobby.player1.out.println("{!?");
+                    player.wait_in_lobby.player1.out.flush();
+                }
                     player.wait_in_lobby.player1 = null;
                     player.wait_in_lobby = null;
             }
