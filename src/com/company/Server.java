@@ -104,7 +104,6 @@ public class Server {
                 for(int j = 0; j < 5; ++j) {
                     if(lobbies.get(j).player1 == null) {
                         lobbies.get(j).add1(player);
-                        System.out.println(lobbies.get(j).player1.name);
                         for (int i = 0; i < players.size(); ++i) {
                             if (players.get(i) != null && s.equals(players.get(i).name)) {
                                 invite(players.get(i), lobbies.get(j), player.name);
@@ -120,6 +119,8 @@ public class Server {
                     players.remove(player);
             } else if(s.equals("no")){
                     players.add(player.wait_in_lobby.player1);
+                    players.lastElement().out.println("{!?");
+                    players.lastElement().out.flush();
                     player.wait_in_lobby.player1 = null;
                     player.wait_in_lobby = null;
             }
